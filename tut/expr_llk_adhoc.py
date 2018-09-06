@@ -1,42 +1,31 @@
-my_input, grammar, cur_position = None, None, 0
+class g_parse:
+    def __init__(self, g): self._g = g
 
-def pos_cur(): return cur_position
+    def remain(self): return self._len - self._i
 
-def pos_set(i):
-    global cur_position
-    cur_position = i
+    def next_token(self):
+        try: return None if self._i + 1 > self._len else self._str[self._i]
+        finally: self._i += 1
 
-def pos_eof(): return pos_cur() == len(my_input)
+    def match(self, t): return self.next_token() == t
 
-def next_token():
-    i = pos_cur()
-    if i+1 > len(my_input): return None
-    pos_set(i+1)
-    return my_input[i]
+    def is_nt(self, key): return key in self._g
 
-def match(t): return next_token() == t
+    def do_seq(self, seq_terms): return all(self.do_alt(t) for t in seq_terms)
 
-def do_seq(seq_terms):
-   for t in seq_terms:
-       if not do_alt(t): return False
-   return True
+    def _try(self, fn):
+        o_pos = self._i
+        if fn(): return True
+        self._i = o_pos
 
-def do_alt(key):
-    if key not in grammar: return match(key)
-    alt_terms = grammar[key]
-    for ts in alt_terms:
-        o_pos = pos_cur()
-        if do_seq(ts): return True
-        pos_set(o_pos)
-    return False
+    def do_alt(self, key):
+        if not self.is_nt(key): return self.match(key)
+        return any(self._try(lambda: self.do_seq(ts)) for ts in self._g[key])
 
-def parse(i, g):
-    global my_input
-    global grammar
-    grammar = g
-    my_input = i
-    do_alt('expr')
-    assert pos_eof()
+    def parse(self, i):
+        self._str, self._len, self._i = i, len(i), 0
+        self.do_alt('expr')
+        assert self.remain() == 0
 
 if __name__ == '__main__':
     my_grammar = {
@@ -57,4 +46,4 @@ if __name__ == '__main__':
             "mul_op": [["*"], ["/"]]}
 
     import sys
-    parse(sys.argv[1], my_grammar)
+    g_parse(my_grammar).parse(sys.argv[1])
