@@ -29,5 +29,15 @@ def derive(c, l):
 def matches(w, l):
     return nullable(l) if w == '' else matches(w[1:], derive(w[0], l))
 
-print(matches('aabzd', [('a',), ['b', ('x', 'y', 'z'), 'd', ('e',)]]))
-print(matches('aabnd', [('a',), ['b', ('x', 'y', 'z'), 'd', ('e',)]]))
+#print(matches('aabzd', [('a',), ['b', ('x', 'y', 'z'), 'd', ('e',)]]))
+#print(matches('aabnd', [('a',), ['b', ('x', 'y', 'z'), 'd', ('e',)]]))
+
+digit = tuple(list("0123456789"))
+floater = [('', ('+', '-')),
+              (digit,),
+              '.',
+              digit,
+              (digit,)]
+
+for i in [("-2.0", True), ("1", False), ("", False), ("+12.12", True), ("1.0", True)]:
+    print(i[0], matches(i[0], floater), i[1])
